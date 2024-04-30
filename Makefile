@@ -1,11 +1,10 @@
 WORKING_DIRS=tmp
 SRC=$(shell find . -name "*.go")
 BIN=tmp/$(shell basename $(CURDIR))
-TESTBIN=tmp/$(shell basename $(CURDIR))-test
 FMT=tmp/fmt
-TEST=tmp/test
+TEST=tmp/cover
 
-.PHONY: all clean
+.PHONY: all clean cover
 
 all: $(WORKING_DIRS) $(FMT) $(BIN) $(TEST)
 
@@ -22,6 +21,7 @@ $(BIN): $(SRC)
 	go build -o $(BIN)
 
 $(TEST): $(BIN)
-	go test -v -tags=mock -cover -coverprofile=tmp/cover ./... > $(TEST) 2>&1; \
-  cat $(TEST); \
-  grep "0$$" tmp/cover || true
+	go test -v -tags=mock -cover -coverprofile=$(TEST) ./...
+
+cover: $(TEST)
+	grep "0$$" $(TEST) || true
