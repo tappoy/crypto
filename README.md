@@ -7,8 +7,8 @@ This golang package provides some useful functions for encryption and decryption
 # Features
 
 # Functions
-- `NewCrypto(password string) *Crypto` - Create a new Crypto object.
-- `Encrypt(bytes []byte) ([]byte, error)` - Encrypt a byte array.
+- `NewCrypto(password string) (*Crypto, error)` - Create a new Crypto object.
+- `Encrypt(bytes []byte) []byte` - Encrypt a byte array.
 - `Decrypt(bytes []byte) ([]byte, error)` - Decrypt a byte array.
 
 # Errors
