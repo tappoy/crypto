@@ -76,4 +76,6 @@ func TestInvalidCiphertext(t *testing.T) {
 	if err != ErrInvalidCiphertext {
 		t.Error("Error invalid ciphertext")
 	}
+
+	t.Error("workflow test")
 }
