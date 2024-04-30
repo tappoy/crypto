@@ -12,9 +12,7 @@ This golang package provides some useful functions for encryption and decryption
 - `Decrypt(bytes []byte) ([]byte, error)` - Decrypt a byte array.
 
 # Errors
-- `ErrCannotCreateCipher`: Cannot create the cipher.
-- `ErrCannotCreateGcm`: Cannot create the GCM.
-- `ErrCannotGenerateNonce`: Cannot generate the nonce.
+- `ErrInvalidPasswordLength`: The password length is invalid. It must be 8 to 32 characters.
 - `ErrInvalidCiphertext`: The ciphertext is invalid.
 - `ErrCannotDecryptSecret`: Cannot decrypt the secret.
 

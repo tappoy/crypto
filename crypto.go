@@ -23,7 +23,7 @@ type Crypto struct {
 
 // get password filled with spaces to 32 characters
 func getPassword32(password string) (string, error) {
-	if len(password) >= 32 {
+	if len(password) > 32 || len(password) < 8 {
 		return "", ErrInvalidPasswordLength
 	}
 	return fmt.Sprintf("%-32s", password), nil

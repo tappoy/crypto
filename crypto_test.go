@@ -14,7 +14,7 @@ func TestMain(m *testing.M) {
 func TestCryptoNormal(t *testing.T) {
 	c, err := NewCrypto(password)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	encrypted := c.Encrypt([]byte("hello"))
@@ -32,9 +32,9 @@ func TestCryptoNormal(t *testing.T) {
 	}
 
 	// wrong password
-	c, err = NewCrypto("wrong")
+	c, err = NewCrypto("wrong password")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	_, err = c.Decrypt(encrypted)
@@ -50,9 +50,19 @@ func TestCryptoInvalidPasswordLength(t *testing.T) {
 		t.Error("Error invalid password length 33")
 	}
 
-	_, err = NewCrypto("")
+	_, err = NewCrypto("12345678901234567890123456789012")
 	if err != nil {
-		t.Error("Error invalid password length 0")
+		t.Error("Error invalid password length 32")
+	}
+
+	_, err = NewCrypto("12345678")
+	if err != nil {
+		t.Error("Error invalid password length 8")
+	}
+
+	_, err = NewCrypto("1234567")
+	if err == nil {
+		t.Error("Error invalid password length 7")
 	}
 }
 
