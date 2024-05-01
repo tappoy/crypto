@@ -1,6 +1,6 @@
 package crypto // import "github.com/tappoy/crypto"
 
-This package provides some useful functions for encryption and decryption.
+This package provides simple functions related to cryptography.
 
 VARIABLES
 
@@ -14,6 +14,14 @@ var (
 	// Cannot decrypt the secret.
 	ErrCannotDecryptSecret = errors.New("ErrCannotDecryptSecret")
 )
+
+FUNCTIONS
+
+func Hash(s string) string
+    Hash the given string. (SHA256)
+
+        ex) "hello" -> "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+
 
 TYPES
 

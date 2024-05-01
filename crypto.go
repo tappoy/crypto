@@ -1,10 +1,11 @@
-// This package provides some useful functions for encryption and decryption.
+// This package provides simple functions related to cryptography.
 package crypto
 
 import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
@@ -78,4 +79,11 @@ func (c *Crypto) Decrypt(data []byte) ([]byte, error) {
 	}
 
 	return decrypted, nil
+}
+
+// Hash the given string. (SHA256)
+//
+//	ex) "hello" -> "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+func Hash(s string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(s)))
 }
