@@ -38,7 +38,7 @@ func getPassword32(password string) (string, error) {
 // Create a new Crypto object.
 //
 //	Errors:
-//	- ErrInvalidPasswordLength: The password length is invalid. It must be 8 to 32 characters.
+//	- ErrInvalidPasswordLength
 func NewCrypto(password string) (*Crypto, error) {
 	password32, err := getPassword32(password)
 	if err != nil {
@@ -63,8 +63,8 @@ func (c *Crypto) Encrypt(data []byte) []byte {
 // Decrypt the data.
 //
 //	Errors:
-//	- ErrInvalidCiphertext: The ciphertext is invalid.
-//	- ErrCannotDecryptSecret: Cannot decrypt the secret.
+//	- ErrInvalidCiphertext
+//	- ErrCannotDecryptSecret
 func (c *Crypto) Decrypt(data []byte) ([]byte, error) {
 	nonceSize := c.gcm.NonceSize()
 	if len(data) < nonceSize {
