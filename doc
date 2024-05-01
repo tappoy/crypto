@@ -1,0 +1,40 @@
+package crypto // import "github.com/tappoy/crypto"
+
+This package provides some useful functions for encryption and decryption.
+
+VARIABLES
+
+var (
+	// The password length is invalid. It must be 8 to 32 characters.
+	ErrInvalidPasswordLength = errors.New("ErrInvalidPasswordLength")
+
+	// The ciphertext is invalid.
+	ErrInvalidCiphertext = errors.New("ErrInvalidCiphertext")
+
+	// Cannot decrypt the secret.
+	ErrCannotDecryptSecret = errors.New("ErrCannotDecryptSecret")
+)
+
+TYPES
+
+type Crypto struct {
+	// Has unexported fields.
+}
+    Crypto object.
+
+func NewCrypto(password string) (*Crypto, error)
+    Create a new Crypto object.
+
+        Errors:
+        - ErrInvalidPasswordLength: The password length is invalid. It must be 8 to 32 characters.
+
+func (c *Crypto) Decrypt(data []byte) ([]byte, error)
+    Decrypt the data.
+
+        Errors:
+        - ErrInvalidCiphertext: The ciphertext is invalid.
+        - ErrCannotDecryptSecret: Cannot decrypt the secret.
+
+func (c *Crypto) Encrypt(data []byte) []byte
+    Encrypt the data.
+
