@@ -1,3 +1,4 @@
+// This package provides some useful functions for encryption and decryption.
 package crypto
 
 import (
@@ -9,13 +10,18 @@ import (
 	"io"
 )
 
-// Errors
 var (
+	// The password length is invalid. It must be 8 to 32 characters.
 	ErrInvalidPasswordLength = errors.New("ErrInvalidPasswordLength")
-	ErrInvalidCiphertext     = errors.New("ErrInvalidCiphertext")
-	ErrCannotDecryptSecret   = errors.New("ErrCannotDecryptSecret")
+
+	// The ciphertext is invalid.
+	ErrInvalidCiphertext = errors.New("ErrInvalidCiphertext")
+
+	// Cannot decrypt the secret.
+	ErrCannotDecryptSecret = errors.New("ErrCannotDecryptSecret")
 )
 
+// Crypto object.
 type Crypto struct {
 	gcm   cipher.AEAD
 	nonce []byte
@@ -29,6 +35,10 @@ func getPassword32(password string) (string, error) {
 	return fmt.Sprintf("%-32s", password), nil
 }
 
+// Create a new Crypto object.
+//
+//	Errors:
+//	- ErrInvalidPasswordLength: The password length is invalid. It must be 8 to 32 characters.
 func NewCrypto(password string) (*Crypto, error) {
 	password32, err := getPassword32(password)
 	if err != nil {
@@ -45,10 +55,16 @@ func NewCrypto(password string) (*Crypto, error) {
 	return &Crypto{gcm: gcm, nonce: nonce}, nil
 }
 
+// Encrypt the data.
 func (c *Crypto) Encrypt(data []byte) []byte {
 	return c.gcm.Seal(c.nonce, c.nonce, data, nil)
 }
 
+// Decrypt the data.
+//
+//	Errors:
+//	- ErrInvalidCiphertext: The ciphertext is invalid.
+//	- ErrCannotDecryptSecret: Cannot decrypt the secret.
 func (c *Crypto) Decrypt(data []byte) ([]byte, error) {
 	nonceSize := c.gcm.NonceSize()
 	if len(data) < nonceSize {
