@@ -1,7 +1,7 @@
 # Package
 `github.com/tappoy/crypto`
 
-See [go doc -all](Document.txt)
+See [Document.txt](Document.txt)
 
 # License
 [LGPL-3.0](LICENSE)
