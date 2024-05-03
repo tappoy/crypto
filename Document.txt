@@ -13,9 +13,15 @@ var (
 
 	// Cannot decrypt the secret.
 	ErrCannotDecryptSecret = errors.New("ErrCannotDecryptSecret")
+
+	// Error about initialization vector.
+	ErrInitializationVector = errors.New("ErrInitializationVector")
 )
 
 FUNCTIONS
+
+func GenerateRandomString(length int) string
+    Generate a random string with the given length.
 
 func Hash(s string) string
     Hash the given string. (SHA256)
@@ -33,16 +39,28 @@ type Crypto struct {
 func NewCrypto(password string) (*Crypto, error)
     Create a new Crypto object.
 
-        Errors:
-        - ErrInvalidPasswordLength
+    Errors:
+      - ErrInvalidPasswordLength
 
 func (c *Crypto) Decrypt(data []byte) ([]byte, error)
     Decrypt the data.
 
-        Errors:
-        - ErrInvalidCiphertext
-        - ErrCannotDecryptSecret
+    Errors:
+      - ErrInvalidCiphertext
+      - ErrCannotDecryptSecret
 
 func (c *Crypto) Encrypt(data []byte) []byte
     Encrypt the data.
+
+func (c *Crypto) Reader(r io.Reader) (io.Reader, error)
+    Make cipher stream reader.
+
+    Errors:
+      - ErrInitializationVector
+
+func (c *Crypto) Writer(w io.Writer) (io.Writer, error)
+    Make cipher stream writer.
+
+    Errors:
+      - ErrInitializationVector
 

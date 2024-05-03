@@ -5,7 +5,7 @@ FMT=tmp/fmt
 TEST=tmp/cover
 DOC=Document.txt
 
-.PHONY: all clean cover
+.PHONY: all clean cover test
 
 all: $(WORKING_DIRS) $(FMT) $(BIN) $(TEST) $(DOC)
 
@@ -18,10 +18,16 @@ $(WORKING_DIRS):
 $(FMT): $(SRC)
 	go fmt ./... > $(FMT) 2>&1 || true
 
-$(BIN): $(SRC)
+go.sum: go.mod
+	go mod tidy
+
+$(BIN): $(SRC) go.sum
 	go build -o $(BIN)
 
 $(TEST): $(BIN)
+	make test
+
+test:
 	go test -v -tags=mock -cover -coverprofile=$(TEST) ./...
 
 $(DOC): $(SRC)
