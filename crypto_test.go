@@ -79,14 +79,6 @@ func TestInvalidCiphertext(t *testing.T) {
 	}
 }
 
-func TestHash(t *testing.T) {
-	hash := Hash("hello")
-	// t.Log("hash:", hash) // get success hash and use it for next test
-	if hash != "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" {
-		t.Error("Error hash")
-	}
-}
-
 func ExampleHash() {
 	hash := Hash("hello")
 	fmt.Println("hash:", hash)
