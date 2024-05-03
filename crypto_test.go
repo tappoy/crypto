@@ -2,6 +2,8 @@ package crypto
 
 import (
 	"fmt"
+	"io/ioutil"
+	"strings"
 	"testing"
 )
 
@@ -94,4 +96,101 @@ func TestGenerateRandomString(t *testing.T) {
 		randomString := GenerateRandomString(32)
 		fmt.Printf("randomString: '%s'\n", randomString)
 	}
+}
+
+func TestStreamNormal(t *testing.T) {
+	key := "test1234"
+
+	crypto, err := NewCrypto(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	txt := "hello"
+	var sb strings.Builder
+	w, err := crypto.Writer(&sb)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	w.Write([]byte(txt))
+	encrypted := sb.String()
+
+	fmt.Printf("encrypted: %s -> %x\n", txt, encrypted)
+
+	txtReader := strings.NewReader(encrypted)
+	r, err := crypto.Reader(txtReader)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	decrypted, err := ioutil.ReadAll(r)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if string(decrypted) != "hello" {
+		t.Error("Error decrypted")
+	}
+
+	fmt.Printf("decrypted: %x -> %s\n", encrypted, decrypted)
+}
+
+type AlwaysErrorWriter struct{}
+
+func (a *AlwaysErrorWriter) Write(p []byte) (n int, err error) {
+	return 100, fmt.Errorf("Always error")
+}
+
+type AlwaysZeroWriter struct{}
+
+func (a *AlwaysZeroWriter) Write(p []byte) (n int, err error) {
+	return 0, nil
+}
+
+type AlwaysErrorReader struct{}
+
+func (a *AlwaysErrorReader) Read(p []byte) (n int, err error) {
+	return 100, fmt.Errorf("Always error")
+}
+
+type AlwaysZeroReader struct{}
+
+func (a *AlwaysZeroReader) Read(p []byte) (n int, err error) {
+	return 0, nil
+}
+
+func TestStreamError(t *testing.T) {
+	key := "test1234"
+
+	crypto, err := NewCrypto(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	alwaysErrorWriter := &AlwaysErrorWriter{}
+	_, err = crypto.Writer(alwaysErrorWriter)
+
+	if err == nil {
+		t.Error("Error Writer")
+	}
+
+	alwaysErrorReader := &AlwaysErrorReader{}
+	_, err = crypto.Reader(alwaysErrorReader)
+	if err == nil {
+		t.Error("Error Reader")
+	}
+
+	alwaysZeroWriter := &AlwaysZeroWriter{}
+	_, err = crypto.Writer(alwaysZeroWriter)
+	if err == nil {
+		t.Error("Error Writer")
+	}
+
+	alwaysZeroReader := &AlwaysZeroReader{}
+	_, err = crypto.Reader(alwaysZeroReader)
+	if err == nil {
+		t.Error("Error Reader")
+	}
+
 }

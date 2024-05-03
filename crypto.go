@@ -20,12 +20,17 @@ var (
 
 	// Cannot decrypt the secret.
 	ErrCannotDecryptSecret = errors.New("ErrCannotDecryptSecret")
+
+	// Error about initialization vector.
+	ErrInitializationVector = errors.New("ErrInitializationVector")
 )
 
 // Crypto object.
 type Crypto struct {
+	block cipher.Block
 	gcm   cipher.AEAD
 	nonce []byte
+	iv    []byte
 }
 
 // get password filled with spaces to 32 characters
@@ -53,7 +58,10 @@ func NewCrypto(password string) (*Crypto, error) {
 	nonce := make([]byte, gcm.NonceSize())
 	io.ReadFull(rand.Reader, nonce)
 
-	return &Crypto{gcm: gcm, nonce: nonce}, nil
+	iv := make([]byte, aes.BlockSize)
+	io.ReadFull(rand.Reader, iv)
+
+	return &Crypto{block: block, gcm: gcm, nonce: nonce, iv: iv}, nil
 }
 
 // Encrypt the data.
@@ -99,4 +107,33 @@ func GenerateRandomString(length int) string {
 		b[i] = asciiPrintable[int(b[i])%len(asciiPrintable)]
 	}
 	return string(b)
+}
+
+// Make cipher stream writer.
+//
+// Errors:
+//   - ErrInitializationVector
+func (c *Crypto) Writer(w io.Writer) (io.Writer, error) {
+	n, err := w.Write(c.iv)
+	if err != nil || n != len(c.iv) {
+		return nil, ErrInitializationVector
+	}
+
+	stream := cipher.NewOFB(c.block, c.iv)
+	return &cipher.StreamWriter{S: stream, W: w}, nil
+}
+
+// Make cipher stream reader.
+//
+// Errors:
+//   - ErrInitializationVector
+func (c *Crypto) Reader(r io.Reader) (io.Reader, error) {
+	iv := make([]byte, aes.BlockSize)
+	n, err := r.Read(iv)
+	if err != nil || n != len(iv) {
+		return nil, ErrInitializationVector
+	}
+
+	stream := cipher.NewOFB(c.block, iv)
+	return &cipher.StreamReader{S: stream, R: r}, nil
 }

@@ -13,6 +13,9 @@ var (
 
 	// Cannot decrypt the secret.
 	ErrCannotDecryptSecret = errors.New("ErrCannotDecryptSecret")
+
+	// Error about initialization vector.
+	ErrInitializationVector = errors.New("ErrInitializationVector")
 )
 
 FUNCTIONS
@@ -48,4 +51,16 @@ func (c *Crypto) Decrypt(data []byte) ([]byte, error)
 
 func (c *Crypto) Encrypt(data []byte) []byte
     Encrypt the data.
+
+func (c *Crypto) Reader(r io.Reader) (io.Reader, error)
+    Make cipher stream reader.
+
+    Errors:
+      - ErrInitializationVector
+
+func (c *Crypto) Writer(w io.Writer) (io.Writer, error)
+    Make cipher stream writer.
+
+    Errors:
+      - ErrInitializationVector
 
