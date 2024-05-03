@@ -17,6 +17,9 @@ var (
 
 FUNCTIONS
 
+func GenerateRandomString(length int) string
+    Generate a random string with the given length.
+
 func Hash(s string) string
     Hash the given string. (SHA256)
 
@@ -33,15 +36,15 @@ type Crypto struct {
 func NewCrypto(password string) (*Crypto, error)
     Create a new Crypto object.
 
-        Errors:
-        - ErrInvalidPasswordLength
+    Errors:
+      - ErrInvalidPasswordLength
 
 func (c *Crypto) Decrypt(data []byte) ([]byte, error)
     Decrypt the data.
 
-        Errors:
-        - ErrInvalidCiphertext
-        - ErrCannotDecryptSecret
+    Errors:
+      - ErrInvalidCiphertext
+      - ErrCannotDecryptSecret
 
 func (c *Crypto) Encrypt(data []byte) []byte
     Encrypt the data.

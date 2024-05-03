@@ -1,6 +1,7 @@
 package crypto
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -83,5 +84,22 @@ func TestHash(t *testing.T) {
 	// t.Log("hash:", hash) // get success hash and use it for next test
 	if hash != "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" {
 		t.Error("Error hash")
+	}
+}
+
+func ExampleHash() {
+	hash := Hash("hello")
+	fmt.Println("hash:", hash)
+
+	// Output:
+	// hash: 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+}
+
+func TestGenerateRandomString(t *testing.T) {
+	// We can't test random string, because it's random. No seed.
+	// generate 10 times for sample
+	for i := 0; i < 10; i++ {
+		randomString := GenerateRandomString(32)
+		fmt.Printf("randomString: '%s'\n", randomString)
 	}
 }

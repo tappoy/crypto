@@ -38,8 +38,8 @@ func getPassword32(password string) (string, error) {
 
 // Create a new Crypto object.
 //
-//	Errors:
-//	- ErrInvalidPasswordLength
+// Errors:
+//   - ErrInvalidPasswordLength
 func NewCrypto(password string) (*Crypto, error) {
 	password32, err := getPassword32(password)
 	if err != nil {
@@ -63,9 +63,9 @@ func (c *Crypto) Encrypt(data []byte) []byte {
 
 // Decrypt the data.
 //
-//	Errors:
-//	- ErrInvalidCiphertext
-//	- ErrCannotDecryptSecret
+// Errors:
+//   - ErrInvalidCiphertext
+//   - ErrCannotDecryptSecret
 func (c *Crypto) Decrypt(data []byte) ([]byte, error) {
 	nonceSize := c.gcm.NonceSize()
 	if len(data) < nonceSize {
@@ -86,4 +86,17 @@ func (c *Crypto) Decrypt(data []byte) ([]byte, error) {
 //	ex) "hello" -> "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
 func Hash(s string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(s)))
+}
+
+// all printable ascii characters
+var asciiPrintable = []byte("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
+
+// Generate a random string with the given length.
+func GenerateRandomString(length int) string {
+	b := make([]byte, length)
+	rand.Read(b)
+	for i := 0; i < length; i++ {
+		b[i] = asciiPrintable[int(b[i])%len(asciiPrintable)]
+	}
+	return string(b)
 }
