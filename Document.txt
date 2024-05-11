@@ -24,9 +24,12 @@ func GenerateRandomString(length int) string
     Generate a random string with the given length.
 
 func Hash(s string) string
-    Hash the given string. (SHA256)
+    Hash is a function to hash the given string. (SHA-256)
 
         ex) "hello" -> "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+
+func Md5(s string) string
+    Md5 is a function to hash the given string. (MD5)
 
 
 TYPES

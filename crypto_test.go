@@ -194,3 +194,10 @@ func TestStreamError(t *testing.T) {
 	}
 
 }
+
+func TestMd5(t *testing.T) {
+	md5 := Md5("object strage test\n")
+	if md5 != "c253efd685cdae53d5d49f2d1ce9b864" {
+		t.Errorf("got: %s, want: c253efd685cdae53d5d49f2d1ce9b864", md5)
+	}
+}
