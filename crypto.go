@@ -4,6 +4,7 @@ package crypto
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
@@ -89,11 +90,16 @@ func (c *Crypto) Decrypt(data []byte) ([]byte, error) {
 	return decrypted, nil
 }
 
-// Hash the given string. (SHA256)
+// Hash is a function to hash the given string. (SHA-256)
 //
 //	ex) "hello" -> "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
 func Hash(s string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(s)))
+}
+
+// Md5 is a function to hash the given string. (MD5)
+func Md5(s string) string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(s)))
 }
 
 // all printable ascii characters
