@@ -304,7 +304,7 @@ func TestTarGzCrypto(t *testing.T) {
 
 	// tar
 	target := "tmp/test/d1"
-	err = TarGzCrypto(target, destTar, password)
+	err = TarGzEncrypto(target, destTar, password)
 	if err != nil {
 		t.Error(err)
 	}

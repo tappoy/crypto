@@ -149,7 +149,7 @@ func (c *Crypto) Reader(r io.Reader) (io.Reader, error) {
 	return &cipher.StreamReader{S: stream, R: r}, nil
 }
 
-// Gzip and encrypt the data from r to w with the given password.
+// GzEncrypto is a function to gzip and encrypt the data from r to w with the given password.
 //
 // Errors:
 //   - ErrInvalidPasswordLength
@@ -178,7 +178,7 @@ func GzEncrypto(r io.Reader, w io.Writer, password string) error {
 	return err
 }
 
-// Decrypt and gunzip the data from r to w with the given password.
+// DecryptoGunzip is a function to decrypt and gunzip the data from r to w with the given password.
 //
 // Errors:
 //   - ErrInvalidPasswordLength
@@ -206,13 +206,13 @@ func DecryptoGunzip(r io.Reader, w io.Writer, password string) error {
 	return err
 }
 
-// TarGzCrypto is a function to tar, gzip, and encrypt the given directory.
+// TarGzEncrypto is a function to tar, gzip, and encrypt the given directory.
 //
 // Errors:
 //   - ErrInvalidPasswordLength
 //   - ErrInitializationVector
 //   - any errors from io.Copy, gzip.NewWriterLevel, filepath.Walk, tar.FileInfoHeader, tw.WriteHeader, os.Open
-func TarGzCrypto(src string, dst io.Writer, password string) error {
+func TarGzEncrypto(src string, dst io.Writer, password string) error {
 	// cipher
 	c, err := NewCrypto(password)
 	if err != nil {
