@@ -10,6 +10,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+
+	"compress/gzip"
 )
 
 var (
@@ -142,4 +144,61 @@ func (c *Crypto) Reader(r io.Reader) (io.Reader, error) {
 
 	stream := cipher.NewOFB(c.block, iv)
 	return &cipher.StreamReader{S: stream, R: r}, nil
+}
+
+// Gzip and encrypt the data from r to w with the given password.
+//
+// Errors:
+//   - ErrInvalidPasswordLength
+//   - ErrInitializationVector
+//   - any errors from io.Copy, gzip.NewWriterLevel
+func GzEncrypto(r io.Reader, w io.Writer, password string) error {
+	// cipher
+	c, err := NewCrypto(password)
+	if err != nil {
+		return err
+	}
+
+	cw, err := c.Writer(w)
+	if err != nil {
+		return err
+	}
+
+	// gz
+	gz, err := gzip.NewWriterLevel(cw, gzip.BestCompression)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	_, err = io.Copy(gz, r)
+	return err
+}
+
+// Decrypt and gunzip the data from r to w with the given password.
+//
+// Errors:
+//   - ErrInvalidPasswordLength
+//   - ErrInitializationVector
+//   - any errors from io.Copy
+func DecryptoGunzip(r io.Reader, w io.Writer, password string) error {
+	// cipher
+	c, err := NewCrypto(password)
+	if err != nil {
+		return err
+	}
+	cr, err := c.Reader(r)
+	if err != nil {
+		return err
+	}
+
+	// gz
+	gz, err := gzip.NewReader(cr)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	_, err = io.Copy(w, gz)
+	return err
 }

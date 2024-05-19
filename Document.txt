@@ -20,8 +20,24 @@ var (
 
 FUNCTIONS
 
+func DecryptoGunzip(r io.Reader, w io.Writer, password string) error
+    Decrypt and gunzip the data from r to w with the given password.
+
+    Errors:
+      - ErrInvalidPasswordLength
+      - ErrInitializationVector
+      - any errors from io.Copy
+
 func GenerateRandomString(length int) string
     Generate a random string with the given length.
+
+func GzEncrypto(r io.Reader, w io.Writer, password string) error
+    Gzip and encrypt the data from r to w with the given password.
+
+    Errors:
+      - ErrInvalidPasswordLength
+      - ErrInitializationVector
+      - any errors from io.Copy, gzip.NewWriterLevel
 
 func Hash(s string) string
     Hash is a function to hash the given string. (SHA-256)
