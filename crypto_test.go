@@ -3,6 +3,7 @@ package crypto
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 )
@@ -99,7 +100,7 @@ func TestGenerateRandomString(t *testing.T) {
 }
 
 func TestStreamNormal(t *testing.T) {
-	key := "test1234"
+	key := password
 
 	crypto, err := NewCrypto(key)
 	if err != nil {
@@ -161,7 +162,7 @@ func (a *AlwaysZeroReader) Read(p []byte) (n int, err error) {
 }
 
 func TestStreamError(t *testing.T) {
-	key := "test1234"
+	key := password
 
 	crypto, err := NewCrypto(key)
 	if err != nil {
@@ -199,5 +200,140 @@ func TestMd5(t *testing.T) {
 	md5 := Md5("object strage test\n")
 	if md5 != "c253efd685cdae53d5d49f2d1ce9b864" {
 		t.Errorf("got: %s, want: c253efd685cdae53d5d49f2d1ce9b864", md5)
+	}
+}
+
+func TestGzEncrypto(t *testing.T) {
+	// rm tmp
+	err := os.RemoveAll("tmp/test")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// make dir
+	err = os.MkdirAll("tmp/test", 0755)
+
+	// make test text
+	var testText []byte
+	for i := 0; i < 100; i++ {
+		testText = append(testText, []byte("hellohellohello\n")...)
+	}
+
+	// make a test file
+	err = os.WriteFile("tmp/test/test.txt", testText, 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// create destination file
+	dest, err := os.Create("tmp/test/test.txt.gzc")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer dest.Close()
+
+	// open source file
+	src, err := os.Open("tmp/test/test.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer src.Close()
+
+	// GzEncrypto
+	err = GzEncrypto(src, dest, password)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// DecryptGunzip
+	dest, err = os.Create("tmp/test/test.txt.dec")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	src, err = os.Open("tmp/test/test.txt.gzc")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer src.Close()
+
+	err = DecryptoGunzip(src, dest, password)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Show the result
+	destStr, err := os.ReadFile("tmp/test/test.txt.dec")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// check the result
+	if string(destStr) != string(testText) {
+		t.Error("Error GzEncrypto")
+	}
+
+}
+
+func TestTarGzCrypto(t *testing.T) {
+	// rm tmp
+	err := os.RemoveAll("tmp/test")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// make dir
+	err = os.MkdirAll("tmp/test/d1/d2", 0755)
+
+	// make a test file
+	err = os.WriteFile("tmp/test/d1/test.txt", []byte("test1"), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.WriteFile("tmp/test/d1/d1.txt", []byte("d1"), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.WriteFile("tmp/test/d1/d2/d2.txt", []byte("d2"), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// create tar dst file
+	destTar, err := os.Create("tmp/test/test.tgzc")
+
+	// tar
+	target := "tmp/test/d1"
+	err = TarGzCrypto(target, destTar, password)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// untar
+	destDir := "tmp/test/untar"
+	err = os.MkdirAll(destDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srcTar, err := os.Open("tmp/test/test.tgzc")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer srcTar.Close()
+
+	err = DecryptoGunzipUntar(srcTar, destDir, password)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// check the result
+	destStr, err := os.ReadFile("tmp/test/untar/tmp/test/d1/test.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(destStr) != "test1" {
+		t.Error("Error TarGzCrypto")
 	}
 }

@@ -10,6 +10,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+
+	"archive/tar"
+	"compress/gzip"
+	"path/filepath"
 )
 
 var (
@@ -142,4 +147,186 @@ func (c *Crypto) Reader(r io.Reader) (io.Reader, error) {
 
 	stream := cipher.NewOFB(c.block, iv)
 	return &cipher.StreamReader{S: stream, R: r}, nil
+}
+
+// Gzip and encrypt the data from r to w with the given password.
+//
+// Errors:
+//   - ErrInvalidPasswordLength
+//   - ErrInitializationVector
+//   - any errors from io.Copy, gzip.NewWriterLevel
+func GzEncrypto(r io.Reader, w io.Writer, password string) error {
+	// cipher
+	c, err := NewCrypto(password)
+	if err != nil {
+		return err
+	}
+
+	cw, err := c.Writer(w)
+	if err != nil {
+		return err
+	}
+
+	// gz
+	gz, err := gzip.NewWriterLevel(cw, gzip.BestCompression)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	_, err = io.Copy(gz, r)
+	return err
+}
+
+// Decrypt and gunzip the data from r to w with the given password.
+//
+// Errors:
+//   - ErrInvalidPasswordLength
+//   - ErrInitializationVector
+//   - any errors from io.Copy
+func DecryptoGunzip(r io.Reader, w io.Writer, password string) error {
+	// cipher
+	c, err := NewCrypto(password)
+	if err != nil {
+		return err
+	}
+	cr, err := c.Reader(r)
+	if err != nil {
+		return err
+	}
+
+	// gz
+	gz, err := gzip.NewReader(cr)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	_, err = io.Copy(w, gz)
+	return err
+}
+
+// TarGzCrypto is a function to tar, gzip, and encrypt the given directory.
+//
+// Errors:
+//   - ErrInvalidPasswordLength
+//   - ErrInitializationVector
+//   - any errors from io.Copy, gzip.NewWriterLevel, filepath.Walk, tar.FileInfoHeader, tw.WriteHeader, os.Open
+func TarGzCrypto(src string, dst io.Writer, password string) error {
+	// cipher
+	c, err := NewCrypto(password)
+	if err != nil {
+		return err
+	}
+
+	cw, err := c.Writer(dst)
+	if err != nil {
+		return err
+	}
+
+	// gz
+	gz, err := gzip.NewWriterLevel(cw, gzip.BestCompression)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	tw := tar.NewWriter(gz)
+	defer tw.Close()
+
+	return filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if fi.Mode().IsDir() {
+			return nil
+		}
+
+		hdr, err := tar.FileInfoHeader(fi, "")
+		if err != nil {
+			return err
+		}
+
+		// check abs path
+		if filepath.IsAbs(file) {
+			// to relative path
+			hdr.Name = file[1:]
+		} else {
+			hdr.Name = file
+		}
+
+		if err := tw.WriteHeader(hdr); err != nil {
+			return err
+		}
+
+		fr, err := os.Open(file)
+		if err != nil {
+			return err
+		}
+		defer fr.Close()
+
+		_, err = io.Copy(tw, fr)
+		return err
+	})
+}
+
+// DecryptoGunzipUntar is a function to decrypt, gunzip, and untar the given data.
+//
+// Errors:
+//   - ErrInvalidPasswordLength
+//   - ErrInitializationVector
+//   - any errors from io.Copy, gzip.NewReader, tar.NewReader, os.MkdirAll, os.OpenFile, io.Copy
+func DecryptoGunzipUntar(src io.Reader, dst string, password string) error {
+	// cipher
+	c, err := NewCrypto(password)
+	if err != nil {
+		return err
+	}
+	cr, err := c.Reader(src)
+	if err != nil {
+		return err
+	}
+
+	// gz
+	gz, err := gzip.NewReader(cr)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	tr := tar.NewReader(gz)
+
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return err
+		}
+
+		path := filepath.Join(dst, hdr.Name)
+		if hdr.FileInfo().IsDir() {
+			os.MkdirAll(path, hdr.FileInfo().Mode())
+			continue
+		}
+
+		dir := filepath.Dir(path)
+		os.MkdirAll(dir, 0755)
+
+		f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, hdr.FileInfo().Mode())
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(f, tr)
+		if err != nil {
+			return err
+		}
+		f.Close()
+	}
+
+	return nil
 }
