@@ -100,7 +100,7 @@ func TestGenerateRandomString(t *testing.T) {
 }
 
 func TestStreamNormal(t *testing.T) {
-	key := "test1234"
+	key := password
 
 	crypto, err := NewCrypto(key)
 	if err != nil {
@@ -162,7 +162,7 @@ func (a *AlwaysZeroReader) Read(p []byte) (n int, err error) {
 }
 
 func TestStreamError(t *testing.T) {
-	key := "test1234"
+	key := password
 
 	crypto, err := NewCrypto(key)
 	if err != nil {
@@ -240,7 +240,7 @@ func TestGzEncrypto(t *testing.T) {
 	defer src.Close()
 
 	// GzEncrypto
-	err = GzEncrypto(src, dest, "test1234")
+	err = GzEncrypto(src, dest, password)
 	if err != nil {
 		t.Error(err)
 	}
@@ -257,7 +257,7 @@ func TestGzEncrypto(t *testing.T) {
 	}
 	defer src.Close()
 
-	err = DecryptoGunzip(src, dest, "test1234")
+	err = DecryptoGunzip(src, dest, password)
 	if err != nil {
 		t.Error(err)
 	}
@@ -273,4 +273,67 @@ func TestGzEncrypto(t *testing.T) {
 		t.Error("Error GzEncrypto")
 	}
 
+}
+
+func TestTarGzCrypto(t *testing.T) {
+	// rm tmp
+	err := os.RemoveAll("tmp/test")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// make dir
+	err = os.MkdirAll("tmp/test/d1/d2", 0755)
+
+	// make a test file
+	err = os.WriteFile("tmp/test/d1/test.txt", []byte("test1"), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.WriteFile("tmp/test/d1/d1.txt", []byte("d1"), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.WriteFile("tmp/test/d1/d2/d2.txt", []byte("d2"), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// create tar dst file
+	destTar, err := os.Create("tmp/test/test.tgzc")
+
+	// tar
+	target := "tmp/test/d1"
+	err = TarGzCrypto(target, destTar, password)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// untar
+	destDir := "tmp/test/untar"
+	err = os.MkdirAll(destDir, 0755)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srcTar, err := os.Open("tmp/test/test.tgzc")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer srcTar.Close()
+
+	err = DecryptoGunzipUntar(srcTar, destDir, password)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// check the result
+	destStr, err := os.ReadFile("tmp/test/untar/tmp/test/d1/test.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(destStr) != "test1" {
+		t.Error("Error TarGzCrypto")
+	}
 }
